@@ -24,9 +24,6 @@ br.addheaders = [('User-agent', 'Chrome')]
 # The site we will navigate into, handling it's session
 br.open('http://m.merquip.co.nz/User/Login')
 
-# View available forms
-for f in br.forms():
-    print f
 
 # Select the second (index one) form (the first form is a search query box)
 br.select_form(nr=0)
@@ -42,4 +39,10 @@ h = html2text.HTML2Text()
 # Ignore converting links from HTML
 h.ignore_links = True
 
-h.handle(br.open('http://m.merquip.co.nz/Stock/Details/853009').read()):
+page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/853009').read())
+content=page.split("\n")
+a=0
+for i in content:
+    if "Nigel" in i:
+        print(content[a])
+    a+=1
