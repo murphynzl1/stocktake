@@ -42,7 +42,11 @@ h.ignore_links = True
 page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/853009').read())
 content=page.split("\n")
 a=0
+no=853009
+
 for i in content:
     if "Nigel" in i:
-        print(content[a])
+        stock=content[a].split("|")
+        value={no:stock[5]}
+        print[float(value[no])]
     a+=1
