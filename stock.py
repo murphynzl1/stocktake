@@ -39,14 +39,25 @@ h = html2text.HTML2Text()
 # Ignore converting links from HTML
 h.ignore_links = True
 
-page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/853009').read())
-content=page.split("\n")
-a=0
+with open("items.csv",'r') as f:
+    for i in f:
+        print(i.split(","))
+"""
+for no in variable:
+    pass
+#goto stock item
 no=853009
+page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
+#split page by end of line to find stock item.
+content=page.split("\n")
+#varable a is for the position of stock item.
+a=0
 
 for i in content:
+    print(no)
     if "Nigel" in i:
         stock=content[a].split("|")
         value={no:stock[5]}
         print[float(value[no])]
     a+=1
+"""
