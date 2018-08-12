@@ -3,6 +3,7 @@ import mechanize
 import cookielib
 from BeautifulSoup import BeautifulSoup
 import html2text
+from urllib2 import HTTPError
 
 # Browser
 br = mechanize.Browser()
@@ -39,25 +40,28 @@ h = html2text.HTML2Text()
 # Ignore converting links from HTML
 h.ignore_links = True
 
+#Get Items from CSV file
+item={}
 with open("items.csv",'r') as f:
     for i in f:
-        print(i.split(","))
-"""
-for no in variable:
-    pass
-#goto stock item
-no=853009
-page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
-#split page by end of line to find stock item.
-content=page.split("\n")
-#varable a is for the position of stock item.
-a=0
+        i=i.strip('\n')
+        b=i.split(",")
+        #goto stock item
+        no=b[0]
+        try:
+            page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
+        except HTTPError, e:
+            continue
 
-for i in content:
-    print(no)
-    if "Nigel" in i:
-        stock=content[a].split("|")
-        value={no:stock[5]}
-        print[float(value[no])]
-    a+=1
-"""
+        #split page by end of line to find stock item.
+        content=page.split("\n")
+        #varable a is for the position of stock item.
+        a=0
+
+        for i in content:
+            if "Nigel" in i:
+                stock=content[a].split("|")
+                print(stock)
+                value[no]=stock[5]
+                print[float(value[no])]
+                a+=1
