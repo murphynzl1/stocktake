@@ -41,7 +41,7 @@ h = html2text.HTML2Text()
 h.ignore_links = True
 
 #Get Items from CSV file
-item={}
+value={}
 with open("items.csv",'r') as f:
     for i in f:
         i=i.strip('\n')
@@ -49,19 +49,16 @@ with open("items.csv",'r') as f:
         #goto stock item
         no=b[0]
         try:
+            print(no)
             page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
         except HTTPError, e:
             continue
 
         #split page by end of line to find stock item.
         content=page.split("\n")
-        #varable a is for the position of stock item.
-        a=0
 
         for i in content:
             if "Nigel" in i:
-                stock=content[a].split("|")
-                print(stock)
-                value[no]=stock[5]
-                print[float(value[no])]
-                a+=1
+                stock=i.split("|")
+                if "-" not in stock[5]:
+                    value[no]=stock[5]
