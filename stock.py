@@ -46,13 +46,21 @@ with open("items.csv",'r') as f:
     for i in f:
         i=i.strip('\n')
         b=i.split(",")
+
         #goto stock item
         no=b[0]
+
         try:
-            print(no)
             page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
         except HTTPError, e:
             continue
+        except UnicodeDecodeError, d:
+            content=page.split("\n")
+            for i in content:
+                if "Nigel" in i:
+                    stock=i.split("|")
+                    if "-" not in stock[5]:
+                        print(str(no)+":"+str(stock[5]))
 
         #split page by end of line to find stock item.
         content=page.split("\n")
@@ -61,4 +69,4 @@ with open("items.csv",'r') as f:
             if "Nigel" in i:
                 stock=i.split("|")
                 if "-" not in stock[5]:
-                    value[no]=stock[5]
+                    print(str(no)+":"+str(stock[5]))
