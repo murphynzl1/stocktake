@@ -64,7 +64,7 @@ with open("items.csv",'r') as f:
                     break
 
             if "-" not in stock[5]:
-                print(str(no)+","+desc+","+str(stock[5])+"\n")#print items greater than 0
+                print(str(no)+","+desc+","+str(stock[5]))#print items greater than 0
 
         #split page by end of line to find my stock on hand.
         content=page.split("\n")
