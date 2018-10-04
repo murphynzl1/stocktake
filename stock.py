@@ -4,6 +4,7 @@ import cookielib
 from BeautifulSoup import BeautifulSoup
 import html2text
 from urllib2 import HTTPError
+import getpass
 
 # Browser
 br = mechanize.Browser()
@@ -30,8 +31,8 @@ br.open('http://m.merquip.co.nz/User/Login')
 br.select_form(nr=0)
 
 # User credentials
-br.form['LoginId'] = 'nigel'
-br.form['Password'] = 'Nigel9272'
+br.form['LoginId'] = raw_input("Enter Username: ")
+br.form['Password'] = getpass.getpass("Enter Password: " )
 
 # Login
 br.submit()
