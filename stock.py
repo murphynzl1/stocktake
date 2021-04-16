@@ -1,79 +1,73 @@
-
-import mechanize
-import cookielib
-from BeautifulSoup import BeautifulSoup
-import html2text
-from urllib2 import HTTPError
-import getpass
-
-# Browser
-br = mechanize.Browser()
-
-# Cookie Jar
-cj = cookielib.LWPCookieJar()
-br.set_cookiejar(cj)
-
-# Browser options
-br.set_handle_equiv(True)
-br.set_handle_gzip(True)
-br.set_handle_redirect(True)
-br.set_handle_referer(True)
-br.set_handle_robots(False)
-br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
-
-br.addheaders = [('User-agent', 'Chrome')]
-
-# The site we will navigate into, handling it's session
-br.open('http://m.merquip.co.nz/User/Login')
+from bs4 import BeautifulSoup as bs
+import requests
+import re
+import time  # delay requests
+import os
 
 
-# Select the second (index one) form (the first form is a search query box)
-br.select_form(nr=0)
+def remove_html_tags(text):
+    """Remove html tags from a string"""
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
 
-# User credentials
-br.form['LoginId'] = raw_input("Enter Username: ")
-br.form['Password'] = getpass.getpass("Enter Password: " )
 
-# Login
-br.submit()
+URL = 'https://m.merquip.co.nz/'
+LOGIN_ROUTE = 'User/Login'
+onhand = []  # stock onhand
+w = 0  # used to count requests
+username = input('Please enter username: ') #username
+password = input('Please enter password: ' ) #password
 
-h = html2text.HTML2Text()
-# Ignore converting links from HTML
-h.ignore_links = True
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
+    'origin': URL, 'referer': URL + LOGIN_ROUTE}
 
-#Get Items from CSV file
-with open("items.csv",'r') as f:
+s = requests.session()
+
+login_payload = {
+    'LoginId': username,
+    'Password': password,
+}
+
+login_req = s.post(URL + LOGIN_ROUTE, headers=HEADERS, data=login_payload)
+
+cookies = login_req.cookies
+
+with open("items.csv", 'r') as f:
     for i in f:
-        i=i.strip('\n')
-        b=i.split(",")
+        i = i.strip('\n')
+        b = i.split(",")
+        no = b[0]  # stock number
+        desc = b[1]
+        stock = []
+        c = 'n'  # Y when my stock value is found
+        w += 1  # every 50 requests wait 2sec
 
-        #goto stock item
-        no=b[0]
-        desc=b[1]
-
-        try:
-            page=h.handle(br.open('http://m.merquip.co.nz/Stock/Details/'+str(no)).read())
-        except HTTPError, e:
+        # check if stock exists in TTM
+        check = s.get(URL + '/Stock/Details/' + str(no))
+        if check.status_code == 404:
+            onhand.append(str(no) + "," + desc + " , not in TTM \n")
             continue
-        except UnicodeDecodeError, d:
-            #split page by end of line to find stock on hand.
-            content=page.split("\n")
 
-            for i in content:
-                if "Nigel" in i:
-                    stock=i.split("|")
-                    break
+        soup = bs(s.get(URL + '/Stock/Details/' + str(no)).text, 'html.parser')
+        tbody = soup.find_all('td')
 
-            if "-" not in stock[5]:
-                print(str(no)+","+desc+","+str(stock[5]))#print items greater than 0
+        for content in tbody:
+            content = remove_html_tags(str(content))
 
-        #split page by end of line to find my stock on hand.
-        content=page.split("\n")
+            if content.find("Nigel") > -1 or c == 'y':
+                c = 'y'
+                stock.append(content)
+        onhand.append(str(no) + "," + desc + " , " + str(stock[5]) + "\n")
+        print(no)
+        if w == 50:
+            time.sleep(2)
+            w = 0
 
-        for i in content:
-            if "Nigel" in i:
-                stock=i.split("|")
-                break
+# write stocktake to filw
+if os.path.exists("onhand.csv"):
+    os.remove("onhand.csv")
 
-        if "-" not in stock[5]:
-            print(str(no)+","+desc+","+str(stock[5]))#print items greater than 0
+file1 = open("onhand.csv", "w")
+file1.writelines(onhand)
+file1.close()
